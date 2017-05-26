@@ -4,6 +4,11 @@
 
 class ofApp : public ofBaseApp{
 
+    vector<ofVec3f> points;
+    vector<ofVec3f> normals;
+
+    ofEasyCam cam;
+
 	public:
 		void setup();
 		void update();

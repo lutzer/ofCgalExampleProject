@@ -16,10 +16,14 @@
 #include <vector>
 #include <fstream>
 
+static const int NUMBER_OF_POINTS = 50;
+
+static const float POINT_RADIUS = 0.5;
+static const float NORMALS_LENGTH = 2.0;
+
 // Types
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::FT FT;
-typedef Kernel::Point_3 kPoint;
 typedef CGAL::Point_with_normal_3<Kernel> Point_with_normal;
 typedef Kernel::Sphere_3 Sphere;
 typedef std::vector<Point_with_normal> PointList;
@@ -29,8 +33,7 @@ typedef CGAL::Surface_mesh_default_triangulation_3 STr;
 typedef CGAL::Surface_mesh_complex_2_in_triangulation_3<STr> C2t3;
 typedef CGAL::Implicit_surface_3<Kernel, Poisson_reconstruction_function> Surface_3;
 
-//--------------------------------------------------------------
-void ofApp::setup(){
+void calculateMesh(vector<ofVec3f> inputPoints, vector<ofVec3f> inputPointsNormals) {
     // Poisson options
     FT sm_angle = 20.0; // Min triangle angle in degrees.
     FT sm_radius = 30; // Max triangle size w.r.t. point set average spacing.
@@ -40,16 +43,34 @@ void ofApp::setup(){
     // + property maps to access each point's position and normal.
     // The position property map can be omitted here as we use iterators over Point_3 elements.
     PointList points;
-    std::ifstream stream("data/kitten.xyz");
-    if (!stream ||
-        !CGAL::read_xyz_points_and_normals(
-                                           stream,
-                                           std::back_inserter(points),
-                                           CGAL::make_normal_of_point_with_normal_pmap(PointList::value_type())))
-    {
-        std::cerr << "Error: cannot read file data/kitten.xyz" << std::endl;
-        return EXIT_FAILURE;
+
+    for (int i=0; i < inputPoints.size(); i++) {
+        CGAL::Point_with_normal_3<Kernel> point_normal = {
+            inputPoints[i].x,
+            inputPoints[i].y,
+            inputPoints[i].z
+        };
+        point_normal.normal() = CGAL::Vector_3<Kernel>(
+          inputPointsNormals[i].x,
+          inputPointsNormals[i].y,
+          inputPointsNormals[i].z
+                                                       );
+        points.push_back(point_normal);
     }
+
+
+//    std::ifstream stream("kitten.xyz");
+//    if (!stream ||
+//        !CGAL::read_xyz_points_and_normals(
+//                                           stream,
+//                                           std::back_inserter(points),
+//                                           CGAL::make_normal_of_point_with_normal_pmap(PointList::value_type())))
+//    {
+//        std::cerr << "Error: cannot read file data/kitten.xyz" << std::endl;
+//        return EXIT_FAILURE;
+//    }
+
+
     // Creates implicit function from the read points using the default solver.
     // Note: this method requires an iterator over points
     // + property maps to access each point's position and normal.
@@ -58,14 +79,14 @@ void ofApp::setup(){
                                              CGAL::make_normal_of_point_with_normal_pmap(PointList::value_type()) );
     // Computes the Poisson indicator function f()
     // at each vertex of the triangulation.
-    if ( ! function.compute_implicit_function() )
-        return EXIT_FAILURE;
+    //    if ( ! function.compute_implicit_function() )
+    //        return EXIT_FAILURE;
     // Computes average spacing
     FT average_spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>(points.begin(), points.end(),
                                                                              6 /* knn = 1 ring */);
     // Gets one point inside the implicit surface
     // and computes implicit function bounding sphere radius.
-    kPoint inner_point = function.get_inner_point();
+    Kernel::Point_3 inner_point = function.get_inner_point();
     Sphere bsphere = function.bounding_sphere();
     FT radius = std::sqrt(bsphere.squared_radius());
     // Defines the implicit surface: requires defining a
@@ -94,6 +115,32 @@ void ofApp::setup(){
     CGAL::output_surface_facets_to_polyhedron(c2t3, output_mesh);
     out << output_mesh;
     //return EXIT_SUCCESS;
+
+}
+
+//--------------------------------------------------------------
+void ofApp::setup(){
+
+    ofSetVerticalSync(true);
+
+    cam.setDistance(80);
+
+    static float circleRadius = 10;
+
+    // create a set of randomly distirbuted points around a sphere
+    for (int i=0; i < NUMBER_OF_POINTS; i++) {
+        ofVec3f point = {
+            ofRandom(-circleRadius, circleRadius),
+            ofRandom(-circleRadius, circleRadius),
+            ofRandom(-circleRadius, circleRadius)
+        };
+        points.push_back(point);
+        normals.push_back(point.normalize());
+    }
+
+    //calculate
+    //calculateMesh(points,normals);
+
 }
 
 //--------------------------------------------------------------
@@ -104,6 +151,18 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 
+    ofBackgroundGradient(ofColor::gray, ofColor::black, OF_GRADIENT_CIRCULAR);
+
+    ofEnableDepthTest();
+    cam.begin();
+    for (int i=0; i < NUMBER_OF_POINTS; i++) {
+        ofSetColor(200, 200, 200);
+        ofDrawSphere(points[i], POINT_RADIUS);
+        ofSetColor(0, 255, 0);
+        ofDrawLine(points[i], points[i] + normals[i] * NORMALS_LENGTH);
+    }
+    cam.end();
+    ofDisableDepthTest();
 }
 
 //--------------------------------------------------------------
