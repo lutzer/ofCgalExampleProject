@@ -118,6 +118,10 @@ Polyhedron calculateMesh(vector<ofVec3f> inputPoints, vector<ofVec3f> inputPoint
 
 }
 
+ofPoint toOfPoint(cgPoint point) {
+    return ofPoint( point.x(), point.y(), point.z() );
+}
+
 //--------------------------------------------------------------
 void ofApp::setup(){
 
@@ -145,11 +149,6 @@ void ofApp::setup(){
 
         point *= ofRandom(circleRadius*0.5, circleRadius*1.5);
 
-//        ofVec3f point = {
-//            ofRandom(-circleRadius, circleRadius),
-//            ofRandom(-circleRadius, circleRadius),
-//            ofRandom(-circleRadius, circleRadius)
-//        };
         points.push_back(point);
         normals.push_back(point.normalize());
     }
@@ -157,24 +156,10 @@ void ofApp::setup(){
     //construct mesh from points
     Polyhedron cgalMesh = calculateMesh(points,normals);
 
-    map<cgPoint, int> point_indices;
-    int count = 0;
-
-    for ( auto v = cgalMesh.vertices_begin(); v != cgalMesh.vertices_end(); ++v) {
-        cgPoint point = v->point();
-        ofPoint vertex(
-            point.x(),
-            point.y(),
-            point.z()
-        );
-        surface.addVertex(vertex);
-        point_indices[point] = count++;
-    }
-
     for (auto it =cgalMesh.facets_begin(); it!=cgalMesh.facets_end(); ++it) {
-        surface.addIndex(point_indices[it->halfedge()->vertex()->point()]);
-        surface.addIndex(point_indices[it->halfedge()->next()->vertex()->point()]);
-        surface.addIndex(point_indices[it->halfedge()->prev()->vertex()->point()]);
+        surface.addVertex(toOfPoint(it->halfedge()->vertex()->point()));
+        surface.addVertex(toOfPoint(it->halfedge()->next()->vertex()->point()));
+        surface.addVertex(toOfPoint(it->halfedge()->prev()->vertex()->point()));
     }
 
 }

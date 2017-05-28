@@ -6,9 +6,9 @@ Example xCode project for including CGAL 4.9.1 within an openFrameworks Project.
 
 ## Compile Project
 
-* install cgal and dependencies with homebrew: `brew install cgal` 
+* install cgal and dependencies with homebrew: `brew install cgal` (v4.9.1)
 
-* install eigen library: `brew install eigen`
+* install eigen library: `brew install eigen` (v3.3.3)
 
 * make sure it installed the correct links in `/usr/local/lib` and `/usr/local/include`
 
