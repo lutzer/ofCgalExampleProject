@@ -417,6 +417,7 @@
 					src,
 					../../../addons/ofxGui/src,
 					/usr/local/include,
+					/usr/local/include/eigen3,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -460,6 +461,7 @@
 					src,
 					../../../addons/ofxGui/src,
 					/usr/local/include,
+					/usr/local/include/eigen3,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";

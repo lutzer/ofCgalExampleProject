@@ -7,6 +7,10 @@ class ofApp : public ofBaseApp{
     vector<ofVec3f> points;
     vector<ofVec3f> normals;
 
+    ofMesh surface;
+    
+    ofLight ambLight;
+
     ofEasyCam cam;
 
 	public:
